@@ -31,43 +31,8 @@
       ansible.builtin.script:
         cmd: find_missing_points.py get_curr_points
         executable: ../../venv/bin/python3
-      register: curr_points_raw
+      register: filtered_points
 
-    - name: Parse JSON output
-      ansible.builtin.set_fact:
-        curr_points: "{{ curr_points_raw.stdout.splitlines() | map('from_yaml') | list }}"
-
-# CAN USE COMMAND BELOW TO SEND MESSAGE ONE AT A TIME TO KAFKA, CHECK IF BATCH SENDING EXISTS/IS BETTER
-    # - name: Confirm starting index
-    #   ansible.builtin.debug:
-    #     var: curr_points
-
-    # - name: Convert all points to a list of dictionaries
-    #   ansible.builtin.set_fact:
-    #     all_points: "{{ curr_points | from_json }}"
-
-    # - name: Confirm starting index
-    #   ansible.builtin.debug:
-    #     var: curr_points[0][0]["date"]
-
-    - name: Calculate starting index of missing points
-      ansible.builtin.script:
-        cmd: find_missing_points.py calculate_missing_points --latest-date '{{ curr_points[0][0]["date"] }}' --curr-points '{{ curr_points[0] }}' # arguments too long can't process and some other None error
-        executable: ../../venv/bin/python3  # Specify the shell to execute the script
-
-    # - name: Calculate starting index of missing points
-    #   ansible.builtin.command:
-    #     python3 find_missing_points.py calculate_missing_points --latest-date '{{ curr_points[0]["date"] }}' --curr-points '{{ curr_points | to_json }}'
-
-    # - name: Confirm starting index
-    #   ansible.builtin.debug:
-    #     var: starting_index.stdout
-
-    # - name: Return missing points
-    #   ansible.builtin.command:
-    #     python3 find_missing_points.py filter_points --curr-idx "{{ starting_index.stdout }}" --curr-points "{{ curr_points.stdout }}"
-    #   register: filtered_points
-
-    # - name: Confirm filtered points
-    #   ansible.builtin.debug:
-    #     var: filter_points.stdout
+    - name: Confirm filtered points
+      ansible.builtin.debug:
+        var: filtered_points.stdout
