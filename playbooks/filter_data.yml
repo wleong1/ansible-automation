@@ -1,0 +1,28 @@
+---
+# This playbook sends GET request to MongoDB and determine how many data points are missing
+- name: Find missing points from MongoDB
+  hosts: localhost
+  gather_facts: false
+  # vars_files:
+  #   - vault_file.yml
+
+  tasks:
+    - name: Install pymongo
+      pip:
+        name: pymongo
+        state: present
+
+    - name: Get all points in database
+      ansible.builtin.script:
+        cmd: find_missing_points.py get_curr_points
+        executable: ../../venv/bin/python3
+      register: filtered_points
+
+    - name: Confirm filtered points
+      ansible.builtin.debug:
+        var: filtered_points.stdout
+
+    - name: Store points
+      ansible.builtin.copy:
+        content: "{{ filtered_points.stdout }}"
+        dest: filtered_data.json

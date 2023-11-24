@@ -1,0 +1,28 @@
+---
+
+- name: Master playbook that runs all playbooks in sequence
+  hosts: localhost
+  gather_facts: false
+
+
+- name: Filter data and store in a local file
+  ansible.builtin.import_playbook: filter_data.yml
+
+- name: Start zookeeper and kafka broker
+  ansible.builtin.import_playbook: start_kafka.yml
+
+- name: Send filtered data to kafka server
+  ansible.builtin.import_playbook: send_to_kafka.yml
+
+- name: Receive data from kafka server and append to MongoDB
+  ansible.builtin.import_playbook: append_to_db.yml
+
+- name: Stop zookeeper and kafka broker
+  ansible.builtin.import_playbook: stop_kafka.yml
+
+- name: Verify processes completed
+  tasks:
+    - name: Print completed message
+      ansible.builtin.debug:
+        msg: Reached the end of the playbook
+  hosts: localhost

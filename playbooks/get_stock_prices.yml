@@ -4,10 +4,9 @@
   hosts: localhost
   gather_facts: false
   vars_files:
-    - api_key.yml
+    - vault_file.yml
 
   tasks:
-
     - name: Make API request
       ansible.builtin.uri:
         url: "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&outputsize=full&apikey={{ alphavantage_api_key }}"

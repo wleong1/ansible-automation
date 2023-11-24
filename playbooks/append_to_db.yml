@@ -1,10 +1,8 @@
 ---
-# This playbook sends GET request to MongoDB and determine how many data points are missing
-- name: Get count for missing points from MongoDB
+
+- name: Append data to MongoDB
   hosts: localhost
   gather_facts: false
-  # vars_files:
-  #   - vault_file.yml
 
   tasks:
     - name: Install pymongo
@@ -12,27 +10,26 @@
         name: pymongo
         state: present
 
-    # - name: Perform calculations
-    #   python_script:
-    #     script: |
-    #       from pymongo import MongoClient
-    #       client = MongoClient("mongodb+srv://wleong:{{ mongodb_password }}@cluster0.kt74jjh.mongodb.net/")
-    #       database = client["StockTracker"]
-    #       collection = database["Companies"]
-    #       projection = {"_id": 0, "name": 1, "price": 1}
-    #       cursor = collection.find({"name": "MSFT"}, projection)
-    #       for doc in cursor:
-    #           latest_date = doc["price"][0]["date"]
-    #       return latest_date
-    # - name: Confirm date
-    #   ansible.builtin.debug:
-    #     var: latest_date
+    - name: Receive contents from kafka
+      ansible.builtin.script:
+        cmd: consumer.py
+        executable: ../../venv/bin/python3
+      register: received_points
+
+    - name: Confirm received points
+      ansible.builtin.debug:
+        var: received_points
+
+    - name: Store points
+      ansible.builtin.copy:
+        content: "{{ received_points.stdout }}"
+        dest: missing_data.json
+
     - name: Get all points in database
       ansible.builtin.script:
-        cmd: find_missing_points.py get_curr_points
+        cmd: send_data_to_db.py send_data
         executable: ../../venv/bin/python3
-      register: filtered_points
 
-    - name: Confirm filtered points
+    - name: Confirm data points sent
       ansible.builtin.debug:
-        var: filtered_points.stdout
+        msg: Data points sent
