@@ -3,8 +3,10 @@
 - name: Find missing points from MongoDB
   hosts: localhost
   gather_facts: false
-  # vars_files:
-  #   - vault_file.yml
+  vars_files:
+    - vault_file.yml
+  vars:
+    current_company: "{{ company }}"
 
   tasks:
     - name: Install pymongo
@@ -14,7 +16,7 @@
 
     - name: Get all points in database
       ansible.builtin.script:
-        cmd: find_missing_points.py get_curr_points
+        cmd: find_missing_points.py {{ current_company }} {{ mongodb_password }} {{ alphavantage_api_key }}
         executable: ../../venv/bin/python3
       register: filtered_points
 

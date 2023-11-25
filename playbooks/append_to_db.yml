@@ -3,6 +3,10 @@
 - name: Append data to MongoDB
   hosts: localhost
   gather_facts: false
+  vars_files:
+    - vault_file.yml
+  vars:
+    current_company: "{{ company }}"
 
   tasks:
     - name: Install pymongo
@@ -27,7 +31,7 @@
 
     - name: Get all points in database
       ansible.builtin.script:
-        cmd: send_data_to_db.py send_data
+        cmd: send_data_to_db.py {{ current_company }} {{ mongodb_password }}
         executable: ../../venv/bin/python3
 
     - name: Confirm data points sent

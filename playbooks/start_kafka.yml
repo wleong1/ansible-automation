@@ -25,14 +25,3 @@
       async: 180
       poll: 0
       register: kafka_broker_status
-
-    # - name: Wait for Kafka broker and zookeeper to complete
-    #   async_status:
-    #     jid: "{{ item.ansible_job_id }}"
-    #   loop:
-    #     - "{{ zookeeper_status }}"
-    #     - "{{ kafka_broker_status }}"
-    #   register: async_result
-    #   until: async_result.finished
-    #   retries: 36
-    #   delay: 5

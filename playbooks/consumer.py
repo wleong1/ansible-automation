@@ -1,44 +1,47 @@
 from confluent_kafka import Consumer, KafkaException
 import json
 
-consumer_conf = {
-    'bootstrap.servers': 'localhost:9092',
-    'group.id': 'my_consumer_group',
-    'auto.offset.reset': 'earliest'
-}
-def receive_data():
-    consumer = Consumer(consumer_conf)
+class KafkaConsumer:
 
-    topic = ['my_topic']
-    consumer.subscribe(topic)
+    def receive_data(self):
+        consumer_conf = {
+        'bootstrap.servers': 'localhost:9092',
+        'group.id': 'my_consumer_group',
+        'auto.offset.reset': 'earliest'
+        }
+        consumer = Consumer(consumer_conf)
 
-    missing_data = []
-    producing = True
-    while producing:
-        try:
-            msg = consumer.poll(timeout=1000)
-            if msg is None:
-                continue
-            if msg.error():
-                if msg.error().code() == KafkaException._PARTITION_EOF:
-                    print(f'Got end of partition event for {msg.topic()} [{msg.partition()}] @ offset {msg.offset()}')
+        topic = ['my_topic']
+        consumer.subscribe(topic)
+
+        missing_data = []
+        producing = True
+        while producing:
+            try:
+                msg = consumer.poll(timeout=1000)
+                if msg is None:
                     continue
-                else:
-                    print(f'Error: {msg.error()}')
+                if msg.error():
+                    if msg.error().code() == KafkaException._PARTITION_EOF:
+                        print(f'Got end of partition event for {msg.topic()} [{msg.partition()}] @ offset {msg.offset()}')
+                        continue
+                    else:
+                        print(f'Error: {msg.error()}')
+                        break
+                message = msg.value().decode("utf-8")
+                if message == "End":
+                    producing = False
                     break
-            message = msg.value().decode("utf-8")
-            if message == "End":
-                producing = False
+            except KeyboardInterrupt:
                 break
-        except KeyboardInterrupt:
-            break
-        
-        data_in_dict = json.loads(message.replace("'", "\""))
-        missing_data.append(data_in_dict)
+            
+            data_in_dict = json.loads(message.replace("'", "\""))
+            missing_data.append(data_in_dict)
 
-    consumer.close()
-    return missing_data
+        consumer.close()
+        return missing_data
 
 if __name__ == "__main__":
-    result = receive_data()
+    kafka_consumer = KafkaConsumer()
+    result = kafka_consumer.receive_data()
     print(result)

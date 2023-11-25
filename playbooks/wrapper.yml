@@ -4,9 +4,10 @@
   hosts: localhost
   gather_facts: false
 
-
 - name: Filter data and store in a local file
   ansible.builtin.import_playbook: filter_data.yml
+  vars:
+    company: "NVDA"
 
 - name: Start zookeeper and kafka broker
   ansible.builtin.import_playbook: start_kafka.yml
@@ -16,6 +17,8 @@
 
 - name: Receive data from kafka server and append to MongoDB
   ansible.builtin.import_playbook: append_to_db.yml
+  vars:
+    company: "NVDA"
 
 - name: Stop zookeeper and kafka broker
   ansible.builtin.import_playbook: stop_kafka.yml

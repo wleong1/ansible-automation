@@ -1,31 +1,33 @@
 from pymongo import MongoClient
-import requests
-from vault_file import alphavantage_api_key, mongodb_password
+import requests, argparse
+# from vault_file import mongodb_password, alphavantage_api_key
 
+ALPHA_VANTAGE_ENDPOINT = "https://www.alphavantage.co/query"
 class DatabaseConnection:
     
-    def get_curr_points(self) -> list:
-        ALPHA_VANTAGE_ENDPOINT = "https://www.alphavantage.co/query"
+    def get_curr_points(self, company, mongodb_password, alphavantage_api_key) -> list:
         client = MongoClient(f"mongodb+srv://wleong:{mongodb_password}@cluster0.kt74jjh.mongodb.net/")
         database = client.StockTracker
         collection = database.Companies
-        projection = {"_id": 0, "name": 1, "price": 1}
-        cursor = collection.find({"name": "AAPL"}, projection)
+        projection = {"_id": 1, "price": 1}
+        cursor = collection.find({"_id": company}, projection)
         for doc in cursor:
             curr_points = doc["price"]
-        # return curr_points
-        latest_date = curr_points[0]["date"]
+            latest_date = curr_points[0]["date"]
         
         price_params: dict = {
         "apikey": alphavantage_api_key,
         "function": "TIME_SERIES_DAILY",
-        "symbol": "AAPL",
+        "symbol": company,
         "outputsize": "full"
         }
         raw_company_data = requests.get(ALPHA_VANTAGE_ENDPOINT, params=price_params).json()
         company_data = [{"date": date, "close": raw_company_data["Time Series (Daily)"][date]["4. close"]} for date in raw_company_data["Time Series (Daily)"]]
-        curr_idx = self.calculate_missing_points(latest_date, company_data)
-        return company_data[:curr_idx]
+        if latest_date:
+            curr_idx = self.calculate_missing_points(latest_date, company_data)
+            return company_data[:curr_idx]
+        else:
+            return company_data
            
     def calculate_missing_points(self, latest_date: str, curr_points: list) -> int:
         start, end = 0, len(curr_points) - 1
@@ -44,5 +46,11 @@ class DatabaseConnection:
 if __name__ == "__main__":
     db_connection = DatabaseConnection()
 
-    result = db_connection.get_curr_points()
+    parser = argparse.ArgumentParser(description='Gather missing data from Alpha Vantage')
+    parser.add_argument('company_name', help='Company for which to gather data')
+    parser.add_argument('mongodb_password', help='MongoDB password')
+    parser.add_argument('alphavantage_api_key', help='AlphaVantage API Key')
+    args = parser.parse_args()
+
+    result = db_connection.get_curr_points(args.company_name, args.mongodb_password, args.alphavantage_api_key)
     print(result)
