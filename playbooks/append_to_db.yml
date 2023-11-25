@@ -1,0 +1,39 @@
+---
+
+- name: Append data to MongoDB
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - vault_file.yml
+  vars:
+    current_company: "{{ company }}"
+
+  tasks:
+    - name: Install pymongo
+      pip:
+        name: pymongo
+        state: present
+
+    - name: Receive contents from kafka
+      ansible.builtin.script:
+        cmd: consumer.py
+        executable: ../../venv/bin/python3
+      register: received_points
+
+    - name: Confirm received points
+      ansible.builtin.debug:
+        var: received_points
+
+    - name: Store points
+      ansible.builtin.copy:
+        content: "{{ received_points.stdout }}"
+        dest: missing_data.json
+
+    - name: Get all points in database
+      ansible.builtin.script:
+        cmd: send_data_to_db.py {{ current_company }} {{ mongodb_password }}
+        executable: ../../venv/bin/python3
+
+    - name: Confirm data points sent
+      ansible.builtin.debug:
+        msg: Data points sent

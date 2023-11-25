@@ -1,0 +1,27 @@
+---
+
+- name: Start Kafka brokers
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Install kafka
+      pip:
+        name: confluent_kafka
+        state: present
+
+    - name: Start Zookeeper
+      ansible.builtin.command: ../../../kafka_2.13-3.6.0/bin/zookeeper-server-start.sh ../../../kafka_2.13-3.6.0/config/zookeeper.properties
+      async: 180
+      poll: 0
+      register: zookeeper_status
+
+    - name: Pause for 30 seconds to allow zookeeper to clear znode
+      ansible.builtin.pause:
+        seconds: 30
+
+    - name: Start Kafka broker
+      ansible.builtin.command: ../../../kafka_2.13-3.6.0/bin/kafka-server-start.sh ../../../kafka_2.13-3.6.0/config/server.properties
+      async: 180
+      poll: 0
+      register: kafka_broker_status

@@ -1,0 +1,32 @@
+---
+
+- name: Stop Kafka brokers
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Validating if zookeeper is up and listening on port 2181
+      wait_for:
+        host: localhost
+        port: 2181
+        delay: 10
+        timeout: 30
+        state: started
+        msg: "Zookeeper is not running"
+
+    - name: Validating if kafka is up and listening on port 9092
+      wait_for:
+        host: localhost
+        port: 9092
+        delay: 10
+        timeout: 30
+        state: started
+        msg: "Kafka is not running on 9092"
+
+    - name: Stop Kafka broker
+      ansible.builtin.command: ../../../kafka_2.13-3.6.0/bin/kafka-server-stop.sh
+      ignore_errors: true
+
+    - name: Stop Zookeeper
+      ansible.builtin.command: ../../../kafka_2.13-3.6.0/bin/zookeeper-server-stop.sh
+      ignore_errors: true
