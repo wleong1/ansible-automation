@@ -5,8 +5,8 @@ import requests, argparse
 ALPHA_VANTAGE_ENDPOINT = "https://www.alphavantage.co/query"
 class DatabaseConnection:
     
-    def get_curr_points(self, company, mongodb_password, alphavantage_api_key) -> list:
-        client = MongoClient(f"mongodb+srv://wleong:{mongodb_password}@cluster0.kt74jjh.mongodb.net/")
+    def get_curr_points(self, company, mongodb_connection, alphavantage_api_key) -> list:
+        client = MongoClient(mongodb_connection)
         database = client.StockTracker
         collection = database.Companies
         projection = {"_id": 1, "price": 1}
@@ -48,9 +48,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Gather missing data from Alpha Vantage')
     parser.add_argument('company_name', help='Company for which to gather data')
-    parser.add_argument('mongodb_password', help='MongoDB password')
+    parser.add_argument('mongodb_connection', help='MongoDB connection link')
     parser.add_argument('alphavantage_api_key', help='AlphaVantage API Key')
     args = parser.parse_args()
 
-    result = db_connection.get_curr_points(args.company_name, args.mongodb_password, args.alphavantage_api_key)
+    result = db_connection.get_curr_points(args.company_name, args.mongodb_connection, args.alphavantage_api_key)
     print(result)
