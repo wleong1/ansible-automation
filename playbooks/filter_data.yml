@@ -16,7 +16,7 @@
 
     - name: Get all points in database
       ansible.builtin.script:
-        cmd: find_missing_points.py {{ current_company }} {{ mongodb_password }} {{ alphavantage_api_key }}
+        cmd: find_missing_points.py {{ current_company }} {{ mongodb_connection }} {{ alphavantage_api_key }}
         executable: ../../venv/bin/python3
       register: filtered_points
 

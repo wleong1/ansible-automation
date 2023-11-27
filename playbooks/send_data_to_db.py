@@ -3,8 +3,8 @@ import json, argparse
 
 class DatabaseSender:
 
-   def send_data(self, company_name, mongodb_password):
-      client = MongoClient(f"mongodb+srv://wleong:{mongodb_password}@cluster0.kt74jjh.mongodb.net/")
+   def send_data(self, company_name, mongodb_connection):
+      client = MongoClient(mongodb_connection)
       database = client["StockTracker"]
       collection = database["Companies"]
       with open("missing_data.json", "r") as file:
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
    parser = argparse.ArgumentParser(description='Gather missing data from Alpha Vantage')
    parser.add_argument('company_name', help='Company for which to add data')
-   parser.add_argument('mongodb_password', help='MongoDB password')
+   parser.add_argument('mongodb_connection', help='MongoDB connection link')
    args = parser.parse_args()
 
-   db_sender.send_data(args.company_name, args.mongodb_password)
+   db_sender.send_data(args.company_name, args.mongodb_connection)

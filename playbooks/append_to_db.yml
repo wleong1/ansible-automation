@@ -31,7 +31,7 @@
 
     - name: Get all points in database
       ansible.builtin.script:
-        cmd: send_data_to_db.py {{ current_company }} {{ mongodb_password }}
+        cmd: send_data_to_db.py {{ current_company }} {{ mongodb_connection }}
         executable: ../../venv/bin/python3
 
     - name: Confirm data points sent
